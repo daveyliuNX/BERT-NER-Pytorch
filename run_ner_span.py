@@ -320,9 +320,10 @@ def load_and_cache_examples(args, task, tokenizer, data_type='train'):
         torch.distributed.barrier()  # Make sure only the first process in distributed training process the dataset, and the others will use the cache
     processor = processors[task]()
     # Load data features from cache or dataset file
+    model_name = list(filter(None, args.model_name_or_path.split('/'))).pop().replace(':', '_').replace('\\', '_')
     cached_features_file = os.path.join(args.data_dir, 'cached_span-{}_{}_{}_{}'.format(
         data_type,
-        list(filter(None, args.model_name_or_path.split('/'))).pop(),
+        model_name,
         str(args.train_max_seq_length if data_type == 'train' else args.eval_max_seq_length),
         str(task)))
     if os.path.exists(cached_features_file) and not args.overwrite_cache:
@@ -376,7 +377,7 @@ def main():
     args.output_dir = args.output_dir + '{}'.format(args.model_type)
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
-    time_ = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
+    time_ = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
     init_logger(log_file=args.output_dir + f'/{args.model_type}-{args.task_name}-{time_}.log')
     if os.path.exists(args.output_dir) and os.listdir(
             args.output_dir) and args.do_train and not args.overwrite_output_dir:
